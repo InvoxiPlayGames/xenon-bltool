@@ -33,7 +33,7 @@ bool cg_is_decrypted(uint8_t *cg_data) {
 
 void cg_print_info(uint8_t *cg_data) {
     bootloader_cg_header *hdr = (bootloader_cg_header *)cg_data;
-    char *indicator = (hdr->header.magic & 0xF000 == 0x5000) ? "SG" : "CG";
+    char *indicator = ((BE16(hdr->header.magic) & 0xF000) == 0x5000) ? "SG" : "CG";
     printf("%s version: %i\n", indicator, BE16(hdr->header.version));
     printf("%s size: 0x%x\n", indicator, BE(hdr->header.size));
     if (cg_is_decrypted(cg_data)) {

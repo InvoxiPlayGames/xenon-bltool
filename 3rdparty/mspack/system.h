@@ -101,7 +101,7 @@ extern struct mspack_system *mspack_default_system;
 
 /* returns the length of a file opened for reading */
 extern int mspack_sys_filelen(struct mspack_system *system,
-                              struct mspack_file *file, off_t *length);
+                              struct mspack_file *file, long int *length);
 
 /* validates a system structure */
 extern int mspack_valid_system(struct mspack_system *sys);

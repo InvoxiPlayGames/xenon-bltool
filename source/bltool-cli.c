@@ -332,14 +332,14 @@ print_usage:
         printf("usage: %s [verb] [arguments]\n\n", argv[0]);
         printf("available verbs:\n");
         for (int i = 0; i < total_verbs; i++) {
-            command_verb *verb = &verbs[i];
+            const command_verb *verb = &verbs[i];
             printf("    %s - %s\n", verb->verb, verb->description);
             printf("      %s %s %s\n", argv[0], verb->verb, verb->argument_example);
         }
         return -1;
     }
 
-    command_verb *chosen_verb = NULL;
+    const command_verb *chosen_verb = NULL;
     for (int i = 0; i < total_verbs; i++) {
         if (strcasecmp(verbs[i].verb, argv[1]) == 0)
             chosen_verb = &verbs[i];

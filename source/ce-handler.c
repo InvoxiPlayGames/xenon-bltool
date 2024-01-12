@@ -34,7 +34,7 @@ bool ce_is_decrypted(uint8_t *ce_data) {
 
 void ce_print_info(uint8_t *ce_data) {
     bootloader_ce_header *hdr = (bootloader_ce_header *)ce_data;
-    char *indicator = (hdr->header.magic & 0xF000 == 0x5000) ? "SE" : "CE";
+    char *indicator = ((BE16(hdr->header.magic) & 0xF000) == 0x5000) ? "SE" : "CE";
     printf("%s version: %i\n", indicator, BE16(hdr->header.version));
     printf("%s size: 0x%x\n", indicator, BE(hdr->header.size));
     if (ce_is_decrypted(ce_data)) {

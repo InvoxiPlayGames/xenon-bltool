@@ -43,13 +43,13 @@ bool cf_verify_signature(uint8_t *cf_data) {
     uint8_t cf_hash[0x14];
     cf_calculate_rotsum(cf_data, cf_hash);
 
-    BOOL result = ExCryptBnQwBeSigVerify(&hdr->signature, cf_hash, "XBOX_ROM_6", (EXCRYPT_RSA *)rsa_1bl);
+    BOOL result = ExCryptBnQwBeSigVerify(&hdr->signature, cf_hash, (const uint8_t *)"XBOX_ROM_6", (EXCRYPT_RSA *)rsa_1bl);
     return (result == 1);
 }
 
 void cf_print_info(uint8_t *cf_data) {
     bootloader_cf_header *hdr = (bootloader_cf_header *)cf_data;
-    char *indicator = (hdr->header.magic & 0xF000 == 0x5000) ? "SF" : "CF";
+    char *indicator = ((BE16(hdr->header.magic) & 0xF000) == 0x5000) ? "SF" : "CF";
     printf("%s version: %i\n", indicator, BE16(hdr->header.version));
     printf("%s size: 0x%x\n", indicator, BE(hdr->header.size));
     printf("%s entrypoint: 0x%x\n", indicator, BE(hdr->header.entrypoint));

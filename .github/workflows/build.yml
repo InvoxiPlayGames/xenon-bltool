@@ -8,12 +8,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Compile
-      run: make
+    - name: Compile (GCC)
+      run: make CC=gcc
+    - name: Compile (Clang)
+      run: make CC=clang
     - name: Upload
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with: 
-        name: linux
+        name: xenon-bltool-linux-ubuntu
         path: |
           xenon-bltool
   macOS:
@@ -24,9 +26,9 @@ jobs:
     - name: Compile
       run: make
     - name: Upload
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with: 
-        name: macos
+        name: xenon-bltool-macos
         path: |
           xenon-bltool
   Windows:
@@ -41,12 +43,14 @@ jobs:
       uses: msys2/setup-msys2@v2
       with:
         msystem: mingw64
-        install: make mingw-w64-x86_64-gcc
-    - name: Compile
+        install: make mingw-w64-x86_64-gcc mingw-w64-x86_64-clang
+    - name: Compile (GCC)
       run: make CC=gcc
+    - name: Compile (Clang)
+      run: make CC=clang
     - name: Upload
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with: 
-        name: windows-mingw64-gcc
+        name: xenon-bltool-windows-mingw64
         path: |
           xenon-bltool.exe

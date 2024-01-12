@@ -158,7 +158,7 @@ int lzx_decompress(const void* lzx_data, size_t lzx_len, void* dest,
 
 int lzxdelta_apply_patch(bootloader_delta_block* patch, size_t patch_len,
                          uint32_t window_size, void* dest) {
-  uint8_t* patch_end = (char*)patch + patch_len;
+  uint8_t* patch_end = (uint8_t*)patch + patch_len;
   bootloader_delta_block* cur_patch = patch;
 
   while (patch_end > (uint8_t*)cur_patch) {
