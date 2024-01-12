@@ -1,0 +1,10 @@
+# build artifacts
+xenon-bltool.exe
+xenon-bltool
+# leftover files
+out/
+*.bin
+*.dec
+# extra annoyances
+*.dSYM
+.DS_Store
