@@ -67,19 +67,16 @@ void cf_print_info(uint8_t *cf_data) {
     }
 }
 
-void cf_decrypt(uint8_t *cf_data, uint8_t *cpu_or_1bl_key) {
+void cf_decrypt(uint8_t *cf_data, uint8_t *onebl_key) {
     bootloader_cf_header *hdr = (bootloader_cf_header *)cf_data;
     uint8_t cf_key[0x10];
     EXCRYPT_RC4_STATE rc4 = {0};
     uint32_t size_aligned = BE(hdr->header.size) + 0xF & 0xFFFFFFF0;
 
-    // the key is the CPU key for decrypting from CD or 1bl key for decrypting from HV
-    ExCryptHmacSha(cpu_or_1bl_key, 0x10, hdr->key, sizeof(hdr->key), NULL, 0, NULL, 0, cf_key, sizeof(cf_key));
+    // the key is the 1bl key
+    ExCryptHmacSha(onebl_key, 0x10, hdr->key, sizeof(hdr->key), NULL, 0, NULL, 0, cf_key, sizeof(cf_key));
     ExCryptRc4Key(&rc4, cf_key, sizeof(cf_key));
 
     // 0x30 = sizeof(bootloader_header), sizeof(hdr->key), and the version info - all content after &pairing is encrypted
     ExCryptRc4Ecb(&rc4, (uint8_t *)&hdr->pairing, size_aligned - 0x30);
-
-    // set the key to all 00s so we know it's not encrypted
-    memset(hdr->key, 0, sizeof(hdr->key));
 }

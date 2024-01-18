@@ -2,6 +2,7 @@
 #define XENON_BOOTLOADER_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "excrypt.h"
 
 typedef enum _xenon_bl_type {
@@ -37,8 +38,8 @@ typedef struct _onebl_globals {
 typedef struct _bootloader_header {
     uint16_t magic;
     uint16_t version;
-    uint16_t pairing;
-    uint16_t flags;
+    uint16_t pairing; // 0x8000 = devkit?
+    uint16_t flags; // 0x0001 = mfg, 0x0800 = cba?
     uint32_t entrypoint;
     uint32_t size;
 } bootloader_header;
@@ -62,17 +63,22 @@ typedef struct _bootloader_cb_header {
     uint8_t key[0x10];
     uint64_t padding_or_args[4];
     EXCRYPT_SIG signature;
-    uint8_t globals[0x25C]; // find out whats in here...
+    uint8_t globals[0x128]; // find out whats in here...
+    EXCRYPT_RSAPUB_2048 devkit_pubkey;
+    uint8_t sc_key[0x10];
+    char sc_salt[10];
+    char sd_salt[10];
     uint8_t cd_cbb_hash[0x14]; // CB_A has CB_B hash, CB_B has CD hash
-    uint8_t more_globals[0x10]; // and here as well...
+    uint8_t more_globals[0x10]; // more_globals[1] has LDV
 } bootloader_cb_header;
 
 typedef struct _bootloader_cd_header {
     bootloader_header header;
     uint8_t key[0x10];
-    uint8_t idk_yet[0x220]; // possibly unused?
+    EXCRYPT_SIG signature; // only valid on devkits
+    uint8_t idk_yet[0x120]; // unused?
     char cf_salt[10];
-    uint16_t unused;
+    uint16_t unused2;
     uint8_t ce_hash[0x14];
 } bootloader_cd_header;
 
@@ -87,9 +93,9 @@ typedef struct _bootloader_ce_header {
 typedef struct _bootloader_cf_header {
     bootloader_header header;
     uint16_t base_ver;
-    uint16_t base_flags; // unsure
+    uint16_t base_flags; // unsure, 0x8000 for devkit
     uint16_t target_ver;
-    uint16_t target_flags; // unsure
+    uint16_t target_flags; // unsure, 0x8000 for devkit
     uint32_t unknown; // think this is unused
     uint32_t cg_size;
     uint8_t key[0x10];
@@ -126,6 +132,17 @@ typedef struct _bootloader_update_inner {
     uint8_t part2_sha[0x14];
 } bootloader_update_inner;
 
+typedef struct _bootloader_update_tab_entry {
+    uint16_t cpu_pvr;
+    uint16_t xenos_id;
+    uint16_t unk1; // differentiates elpis and corona - possibly PCI bridge revision ID?
+    uint16_t unk2; // also differentiates elpis/corona but also new GPU revs?
+    uint16_t from_cb; // seems to be used exclusively on Xenon
+    uint16_t from_cd; // never used, just an assumption?
+    uint16_t to_cb; // the CB (and CB_B in v2) version to update to
+    uint16_t to_cd; // the CD version to update to (matches CB in v2)
+} bootloader_update_tab_entry;
+
 typedef struct _bootloader_compression_header {
     uint32_t window_size;
     uint32_t block_size;
@@ -144,5 +161,11 @@ typedef struct _bootloader_delta_block {
     uint16_t decompressed_size;
     uint16_t compressed_size;
 } bootloader_delta_block;
+
+int get_bootloader_type(bootloader_header *bl);
+bool is_bootloader_devkit(bootloader_header *bl);
+void xke_sc_calculate_rotsum(uint8_t *bl_data, uint8_t *sha_out);
+bool xke_sc_verify_signature(uint8_t *bl_data, char *salt, uint8_t *pubkey);
+void xke_sc_decrypt(uint8_t *bl_data, uint8_t *dec_key);
 
 #endif

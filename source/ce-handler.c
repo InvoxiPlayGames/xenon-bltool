@@ -57,9 +57,6 @@ void ce_decrypt(uint8_t *ce_data, uint8_t *cd_key) {
 
     // 0x20 = sizeof(bootloader_header), sizeof(hdr->key) - all content after &target_address is encrypted
     ExCryptRc4Ecb(&rc4, (uint8_t *)&hdr->target_address, size_aligned - 0x20);
-
-    // set the key to all 00s so we know it's not encrypted
-    memset(hdr->key, 0, sizeof(hdr->key));
 }
 
 void ce_calculate_rotsum(uint8_t *ce_data, uint8_t *sha_out) {

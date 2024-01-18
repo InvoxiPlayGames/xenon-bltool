@@ -9,9 +9,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Compile (GCC)
-      run: make CC=gcc
-    - name: Compile (Clang)
-      run: make CC=clang
+      run: make
     - name: Upload
       uses: actions/upload-artifact@v4
       with: 
@@ -23,7 +21,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Compile
+    - name: Compile (Clang)
       run: make
     - name: Upload
       uses: actions/upload-artifact@v4
@@ -43,11 +41,9 @@ jobs:
       uses: msys2/setup-msys2@v2
       with:
         msystem: mingw64
-        install: make mingw-w64-x86_64-gcc mingw-w64-x86_64-clang
+        install: make mingw-w64-x86_64-gcc
     - name: Compile (GCC)
       run: make CC=gcc
-    - name: Compile (Clang)
-      run: make CC=clang
     - name: Upload
       uses: actions/upload-artifact@v4
       with: 

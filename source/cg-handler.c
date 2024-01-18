@@ -60,9 +60,6 @@ void cg_decrypt(uint8_t *cg_data, uint8_t *cg_hmac) {
 
     // 0x20 = sizeof(bootloader_header), sizeof(hdr->key) - all content after &original_size is encrypted
     ExCryptRc4Ecb(&rc4, (uint8_t *)&hdr->original_size, size_aligned - 0x20);
-
-    // set the key to all 00s so we know it's not encrypted
-    memset(hdr->key, 0, sizeof(hdr->key));
 }
 
 void cg_calculate_rotsum(uint8_t *cg_data, uint8_t *sha_out) {

@@ -6,6 +6,7 @@ Licensed to you under the GNU General Public License version 2. See LICENSE for 
 
 ## Features so far
 
+* Decompressing the CE/5BL base kernel.
 * Extracting and updating the kernel stages. (CE/SE + CG/SE)
 
 ## Usage
