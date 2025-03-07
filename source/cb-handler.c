@@ -83,7 +83,20 @@ void cb_decrypt(uint8_t *cb_data, uint8_t *onebl_key) {
     ExCryptRc4Ecb(&rc4, (uint8_t *)&hdr->padding_or_args, size_aligned - 0x20);
 }
 
-void cb_b_decrypt(uint8_t *cb_b_data, uint8_t *cb_a_data, uint8_t *cpu_key) {
+void cb_b_decrypt_v1(uint8_t *cb_b_data, uint8_t *cb_a_key, uint8_t *cpu_key) {
+    bootloader_cb_header *cb_b_hdr = (bootloader_cb_header *)cb_b_data;
+    EXCRYPT_RC4_STATE rc4 = {0};
+    uint32_t size_aligned = BE(cb_b_hdr->header.size) + 0xF & 0xFFFFFFF0;
+
+    // the key is the key used to decrypt CBA
+    ExCryptHmacSha(cb_a_key, 0x10, cb_b_hdr->key, sizeof(cb_b_hdr->key), cpu_key, 0x10, NULL, 0, cb_b_hdr->key, sizeof(cb_b_hdr->key));
+    ExCryptRc4Key(&rc4, cb_b_hdr->key, sizeof(cb_b_hdr->key));
+
+    // 0x20 = sizeof(bootloader_header), sizeof(hdr->key) - all content after &padding_or_args is encrypted
+    ExCryptRc4Ecb(&rc4, (uint8_t *)&cb_b_hdr->padding_or_args, size_aligned - 0x20);
+}
+
+void cb_b_decrypt_v2(uint8_t *cb_b_data, uint8_t *cb_a_data, uint8_t *cpu_key) {
     bootloader_cb_header *cb_a_hdr = (bootloader_cb_header *)cb_a_data;
     bootloader_cb_header *cb_b_hdr = (bootloader_cb_header *)cb_b_data;
     EXCRYPT_RC4_STATE rc4 = {0};
@@ -101,7 +114,4 @@ void cb_b_decrypt(uint8_t *cb_b_data, uint8_t *cb_a_data, uint8_t *cpu_key) {
 
     // 0x20 = sizeof(bootloader_header), sizeof(hdr->key) - all content after &padding_or_args is encrypted
     ExCryptRc4Ecb(&rc4, (uint8_t *)&cb_b_hdr->padding_or_args, size_aligned - 0x20);
-
-    // we don't memset the key to 0, since it's used to decrypt CB_B/CD
-    // we do that later
 }

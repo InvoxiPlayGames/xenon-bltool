@@ -41,6 +41,12 @@
 #include "cf-handler.h"
 #include "cg-handler.h"
 
+typedef struct _loaded_bl_stage {
+    int stage;
+    bootloader_header header;
+    uint8_t *buffer;
+} loaded_bl_stage;
+
 int do_nand_extract_command(int argc, char **argv) {
     if (argc < 1) {
         printf("not enough arguments!\n");
@@ -68,14 +74,34 @@ int do_nand_extract_command(int argc, char **argv) {
         }
     }
 
-    // read from header
+    // read metadata from header
     xenon_nand_header nand_header = {0};
-    bootloader_header bl_hdr = {0}; // scratch buffer for next stages
     read_nand_data(nand, 0x0, (uint8_t *)&nand_header, sizeof(xenon_nand_header));
+    // TODO: do we want to verify this?
 
+    // some info
     printf("CB offset: 0x%x\n", BE(nand_header.header.entrypoint));
     printf("CF offset: 0x%x\n", BE(nand_header.cf_offset));
     printf("\n");
+
+    loaded_bl_stage loaded_stages[10];
+    int num_loaded_stages = 0;
+    bootloader_header bl_hdr = {0}; // scratch buffer for next stages
+
+    /*
+    // we're starting at the CB entrypoint and enumerating until CE
+    uint32_t next_stage_start = BE(nand_header.header.entrypoint);
+    for (int i = 0; i < 10; i++) {
+        // read the bootloader's header from the next stage address
+        read_nand_data(nand, next_stage_start, (uint8_t *)&bl_hdr, sizeof(bootloader_header));
+        int bl_type = get_bootloader_type(&bl_hdr);
+        
+        // TODO: FINISH THIS
+
+        // the next stage will start right after this one
+        next_stage_start += (BE(bl_hdr.size) + 0xF & 0xFFFFFFF0);
+    }
+    */
 
     // get the size of CB and load it all
     uint32_t cb_start = BE(nand_header.header.entrypoint);
@@ -96,9 +122,12 @@ int do_nand_extract_command(int argc, char **argv) {
         cb_decrypt(cb_buf, key_1bl);
     cb_print_info(cb_buf);
 
+    dump_to_file("extracted_cb.bin", cb_buf, BE(bl_hdr.size));
+
     // the next stage starts right after the first - repeats until 5BL/CE
     uint32_t next_stage_start = cb_start + (BE(bl_hdr.size) + 0xF & 0xFFFFFFF0);
 
+    bool has_cb_b = false;
     // detect CB_A and handle next stage as CB_B
     if ((BE16(bl_hdr.flags) & 0x800) == 0x800) {
         // read the header to get the size
@@ -112,7 +141,7 @@ int do_nand_extract_command(int argc, char **argv) {
         read_nand_data(nand, next_stage_start, cb_b_buf, BE(bl_hdr.size));
 
         if (!cb_is_decrypted(cb_b_buf) && has_cpu_key)
-            cb_b_decrypt(cb_b_buf, cb_buf, cpu_key);
+            cb_b_decrypt_v2(cb_b_buf, cb_buf, cpu_key);
 
         cb_print_info(cb_b_buf);
 
@@ -121,6 +150,10 @@ int do_nand_extract_command(int argc, char **argv) {
         cb_calculate_rotsum(cb_b_buf, cb_b_sha);
         if (memcmp(cb_b_sha, cb_hdr->cd_cbb_hash, 0x14) != 0)
             printf("! CB_B does not match RotSumSha in CB_A !\n");
+
+        dump_to_file("extracted_cb_b.bin", cb_b_buf, BE(bl_hdr.size));
+
+        has_cb_b = true;
 
         // the CB_B's buffer is what we'll be caring about in the future
         cb_hdr = (bootloader_cb_header *)cb_b_buf;
@@ -144,8 +177,10 @@ int do_nand_extract_command(int argc, char **argv) {
     memset(cd_buf, 0, BE(bl_hdr.size));
     read_nand_data(nand, next_stage_start, cd_buf, BE(bl_hdr.size));
 
+    bootloader_cd_header *cd_hdr = (bootloader_cd_header *)cd_buf;
+
     if (!cd_is_decrypted(cd_buf) && has_cpu_key)
-        cd_decrypt(cd_buf, cb_hdr->key, cpu_key);
+        cd_decrypt(cd_buf, cb_hdr->key, has_cb_b ? NULL : cpu_key);
 
     cd_print_info(cd_buf);
 
@@ -155,9 +190,8 @@ int do_nand_extract_command(int argc, char **argv) {
     if (memcmp(cd_sha, cb_hdr->cd_cbb_hash, 0x14) != 0)
         printf("! CD does not match RotSumSha in CB !\n");
 
-    dump_to_file("cd.bin", cd_buf, BE(bl_hdr.size));
+    dump_to_file("extracted_cd.bin", cd_buf, BE(bl_hdr.size));
 
-    bootloader_cd_header *cd_hdr = (bootloader_cd_header *)cd_buf;
     next_stage_start += (BE(bl_hdr.size) + 0xF & 0xFFFFFFF0);
 
     free(cb_buf);
