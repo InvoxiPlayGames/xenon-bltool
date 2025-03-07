@@ -181,12 +181,12 @@ static int msp_seek(struct mspack_file *file, off_t offset, int mode) {
   return -1;
 }
 
-static long int msp_tell(struct mspack_file *file) {
+static off_t msp_tell(struct mspack_file *file) {
   struct mspack_file_p *self = (struct mspack_file_p *) file;
 #if HAVE_FSEEKO
-  return (self) ? (long int) ftello(self->fh) : 0;
+  return (self) ? (off_t) ftello(self->fh) : 0;
 #else
-  return (self) ? (long int) ftell(self->fh) : 0;
+  return (self) ? (off_t) ftell(self->fh) : 0;
 #endif
 }
 
