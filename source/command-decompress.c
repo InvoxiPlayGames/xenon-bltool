@@ -85,9 +85,6 @@ int do_decompress_command(int argc, char **argv) {
     base_kernel = decompressed_kernel_buf;
     hdr = (bootloader_header *)decompressed_kernel_buf;
 
-    // free the original basefile buffer, we don't need the CE anymore
-    free(base_buf);
-
     // save the file
     printf("writing decompressed kernel to '%s'...\n", output_path);
     FILE *out_file = fopen(output_path, "wb+");
@@ -98,6 +95,7 @@ int do_decompress_command(int argc, char **argv) {
     }
     fwrite(decompressed_kernel_buf, 1, BE(ce_hdr->uncompressed_size), out_file);
     fclose(out_file);
+    free(base_buf);
     free(decompressed_kernel_buf);
 
     return 0;

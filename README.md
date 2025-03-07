@@ -8,6 +8,7 @@ Licensed to you under the GNU General Public License version 2. See LICENSE for 
 
 * Decompressing the CE/5BL base kernel.
 * Extracting and updating the kernel stages. (CE/SE + CG/SE)
+* (INCOMPLETE) Decrypting CB, CB_B and CD from a NAND image.
 
 ## Usage
 
@@ -24,7 +25,17 @@ available verbs:
       xenon-bltool decompress [path to CE] [output path]
     xboxupd - Applies an xboxupd.bin (CF+CG) patch to a base kernel or CE.
       xenon-bltool xboxupd [path to xboxupd.bin] [path to CE/base] [output_path]
+    nand_extract - Extracts CB, CB_B and CD stages from a NAND image. (UNFINISHED!)
+      ./xenon-bltool nand_extract [path to nand.bin] [cpu key]
 ```
+
+## Compiling
+
+**Linux, macOS, FreeBSD:** Install your distro's build tools.
+
+**Windows:** Use MSYS2 with MINGW64.
+
+From a terminal with GNU Make and appropriate toolchains installed, run `make`.
 
 ## Credits
 

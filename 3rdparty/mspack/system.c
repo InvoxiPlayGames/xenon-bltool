@@ -163,7 +163,7 @@ static int msp_write(struct mspack_file *file, void *buffer, int bytes) {
   return -1;
 }
 
-static int msp_seek(struct mspack_file *file, long int offset, int mode) {
+static int msp_seek(struct mspack_file *file, off_t offset, int mode) {
   struct mspack_file_p *self = (struct mspack_file_p *) file;
   if (self) {
     switch (mode) {

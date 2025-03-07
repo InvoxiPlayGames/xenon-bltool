@@ -165,7 +165,7 @@ typedef struct _bootloader_delta_block {
 int get_bootloader_type(bootloader_header *bl);
 bool is_bootloader_devkit(bootloader_header *bl);
 void xke_sc_calculate_rotsum(uint8_t *bl_data, uint8_t *sha_out);
-bool xke_sc_verify_signature(uint8_t *bl_data, char *salt, uint8_t *pubkey);
+bool xke_sc_verify_signature(uint8_t *bl_data, const char *salt, uint8_t *pubkey);
 void xke_sc_decrypt(uint8_t *bl_data, uint8_t *dec_key);
 
 #endif

@@ -35,7 +35,7 @@ typedef struct _command_verb {
 static const command_verb verbs[] = {
     { "decompress", "Decompresses a CE/SE (5BL) bootloader.", 2, "[path to CE] [output path]", do_decompress_command },
     { "xboxupd", "Applies an xboxupd.bin (CF+CG) patch to a base kernel or CE.", 3, "[path to xboxupd.bin] [path to CE/base] [output_path]", do_xboxupd_command },
-    { "nand_extract", "Extracts bootloader stages from a NAND image.", 2, "[path to nand.bin] [cpu key]", do_nand_extract_command },
+    { "nand_extract", "Extracts CB, CB_B and CD stages from a NAND image. (UNFINISHED!)", 2, "[path to nand.bin] [cpu key]", do_nand_extract_command },
 };
 int total_verbs = sizeof(verbs) / sizeof(verbs[0]);
 

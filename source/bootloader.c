@@ -70,12 +70,12 @@ void xke_sc_calculate_rotsum(uint8_t *bl_data, uint8_t *sha_out) {
     ExCryptRotSumSha((uint8_t *)hdr, 0x10, (uint8_t *)(hdr + 1), size_aligned - sizeof(bootloader_generic_header), sha_out, 0x14);
 }
 
-bool xke_sc_verify_signature(uint8_t *bl_data, char *salt, uint8_t *pubkey) {
+bool xke_sc_verify_signature(uint8_t *bl_data, const char *salt, uint8_t *pubkey) {
     bootloader_generic_header *hdr = (bootloader_generic_header *)bl_data;
     uint8_t bl_hash[0x14];
     xke_sc_calculate_rotsum(bl_data, bl_hash);
 
-    BOOL result = ExCryptBnQwBeSigVerify(&hdr->signature, bl_hash, salt, (EXCRYPT_RSA *)pubkey);
+    BOOL result = ExCryptBnQwBeSigVerify(&hdr->signature, bl_hash, (const uint8_t *)salt, (EXCRYPT_RSA *)pubkey);
     return (result == 1);
 }
 
