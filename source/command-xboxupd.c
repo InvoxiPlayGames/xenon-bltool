@@ -195,6 +195,8 @@ int do_xboxupd_command(int argc, char **argv) {
         free(patched_kernel);
         return -1;
     }
+
+    uint32_t cg_new_size = BE(cg_hdr->new_size);
     
     // free these now since we won't need them later
     free(base_kernel);
@@ -208,7 +210,7 @@ int do_xboxupd_command(int argc, char **argv) {
         free(patched_kernel);
         return -1;
     }
-    fwrite(patched_kernel, 1, BE(cg_hdr->new_size), out_file);
+    fwrite(patched_kernel, 1, cg_new_size, out_file);
     fclose(out_file);
     free(patched_kernel);
 
