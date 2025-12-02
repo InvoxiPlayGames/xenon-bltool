@@ -81,10 +81,12 @@ bool cg_apply_patch(uint8_t *cg_data, uint8_t *base_data, uint8_t *output_buf) {
         return false;
     }
 
-    // copy the base kernel's data to the output buffer and then decompress into it
+    // copy the base kernel's data and write zero padding up until the new kernel's size
     memcpy(output_buf, base_data, BE(hdr->original_size));
-    int r = lzxdelta_apply_patch((bootloader_delta_block *)(hdr + 1), size_of_compressed, 0x8000, output_buf);
+    memset(output_buf + BE(hdr->original_size), 0, BE(hdr->new_size) - BE(hdr->original_size));
 
+    // apply delta patch
+    int r = lzxdelta_apply_patch((bootloader_delta_block *)(hdr + 1), size_of_compressed, 0x8000, output_buf);
     if (r != 0) {
         // newline here since the lzx library doesn't newline
         printf("\n! error ! lzxdelta_apply_patch returned error code %i\n", r);
