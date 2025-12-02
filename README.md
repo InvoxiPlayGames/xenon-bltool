@@ -50,6 +50,9 @@ Code has been used from the following libraries:
 * [Xenia](https://github.com/xenia-project/xenia)
     * Implementation of LZX delta compression for Xbox 360 binaries.
     * Licensed under BSD license. (See 3rdparty/Xenia_LICENSE)
+* [liblzx](https://github.com/elasota/liblzx/tree/main/liblzx)
+    * Implementation of the CAB LZX compression algorithm derived from wimlib.
+    * LGPLv2.1 license (see 3rdparty/liblzx_LICENSE)
 
 ... and some obligatory shoutouts to some other open source Xbox 360 hacking projects:
 
