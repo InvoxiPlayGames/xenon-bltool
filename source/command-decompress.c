@@ -52,8 +52,11 @@ int do_decompress_command(int argc, char **argv) {
     uint8_t *base_kernel = (uint8_t *)base_buf;
     uint32_t base_kernel_size = base_size;
     bootloader_header *hdr = (bootloader_header *)base_buf;
-    if ((BE16(hdr->magic) & 0xFFF) != 0x345) {
-        printf("input file isn't CE/5BL.\n");
+    uint16_t header_magic_mask = (BE16(hdr->magic) & 0xFFF);
+
+    // If the header magic bytes are not CE, SE, or S5, this isn't a 5BL binary
+    if (header_magic_mask != 0x345 && header_magic_mask != 0x335) {
+        printf("input file isn't CE/SE/5BL. (header magic = 0x%x)\n",header_magic_mask);
         free(base_buf);
         return -1;
     }
