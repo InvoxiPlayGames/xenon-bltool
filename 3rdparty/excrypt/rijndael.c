@@ -2,7 +2,7 @@
 
 #include "rijndael.h"
 
-typedef unsigned long u32;
+typedef unsigned int u32;
 typedef unsigned char u8;
 
 static const u32 Te0[256] =

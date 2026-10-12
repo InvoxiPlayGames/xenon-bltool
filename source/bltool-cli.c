@@ -36,6 +36,8 @@ static const command_verb verbs[] = {
     { "decompress", "Decompresses a CE/SE (5BL) bootloader.", 2, "[path to CE] [output path]", do_decompress_command },
     { "xboxupd", "Applies an xboxupd.bin (CF+CG) patch to a base kernel or CE.", 3, "[path to xboxupd.bin] [path to CE/base] [output_path]", do_xboxupd_command },
     { "nand_extract", "Extracts CB, CB_B and CD stages from a NAND image. (UNFINISHED!)", 2, "[path to nand.bin] [cpu key]", do_nand_extract_command },
+    { "decrypt", "Decrypts a bootloader stage.", 2, "[path to stage] [output path]", do_decrypt_command },
+    { "blupd", "Decrypts a bootloader update blob from $install_extender.xex.", 1, "[path to update blob]", do_blupd_command },
 };
 int total_verbs = sizeof(verbs) / sizeof(verbs[0]);
 

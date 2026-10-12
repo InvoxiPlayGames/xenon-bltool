@@ -28,8 +28,8 @@ typedef enum _nand_type {
     NAND_TYPE_SMALLBLOCK, // Small 16MB/64MB NANDs on pre-Jasper
     NAND_TYPE_SMALLBLOCK_V2, // Small 16MB/64MB NANDs on Jasper and later
     NAND_TYPE_BIGBLOCK, // Large 256MB/512MB NANDs on Jasper
-    NAND_TYPE_UNECC, // NAND image lacks ECC data, and isn't Corona
-    NAND_TYPE_CORONA, // NAND image is Corona. lolhynix
+    NAND_TYPE_UNECC, // NAND image lacks ECC data, and isn't eMMC
+    NAND_TYPE_EMMC, // NAND image is eMMC. lolhynix
 
     NAND_TYPE_UNKNOWN = -1
 } nand_type;

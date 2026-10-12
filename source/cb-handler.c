@@ -79,8 +79,8 @@ void cb_decrypt(uint8_t *cb_data, uint8_t *onebl_key) {
     ExCryptHmacSha(onebl_key, 0x10, hdr->key, sizeof(hdr->key), NULL, 0, NULL, 0, hdr->key, sizeof(hdr->key));
     ExCryptRc4Key(&rc4, hdr->key, sizeof(hdr->key));
 
-    // 0x20 = sizeof(bootloader_header), sizeof(hdr->key) - all content after &padding_or_args is encrypted
-    ExCryptRc4Ecb(&rc4, (uint8_t *)&hdr->padding_or_args, size_aligned - 0x20);
+    // 0x20 = sizeof(bootloader_header), sizeof(hdr->key) - all content after &args is encrypted
+    ExCryptRc4Ecb(&rc4, (uint8_t *)&hdr->args, size_aligned - 0x20);
 }
 
 void cb_b_decrypt_v1(uint8_t *cb_b_data, uint8_t *cb_a_key, uint8_t *cpu_key) {
@@ -92,8 +92,8 @@ void cb_b_decrypt_v1(uint8_t *cb_b_data, uint8_t *cb_a_key, uint8_t *cpu_key) {
     ExCryptHmacSha(cb_a_key, 0x10, cb_b_hdr->key, sizeof(cb_b_hdr->key), cpu_key, 0x10, NULL, 0, cb_b_hdr->key, sizeof(cb_b_hdr->key));
     ExCryptRc4Key(&rc4, cb_b_hdr->key, sizeof(cb_b_hdr->key));
 
-    // 0x20 = sizeof(bootloader_header), sizeof(hdr->key) - all content after &padding_or_args is encrypted
-    ExCryptRc4Ecb(&rc4, (uint8_t *)&cb_b_hdr->padding_or_args, size_aligned - 0x20);
+    // 0x20 = sizeof(bootloader_header), sizeof(hdr->key) - all content after &args is encrypted
+    ExCryptRc4Ecb(&rc4, (uint8_t *)&cb_b_hdr->args, size_aligned - 0x20);
 }
 
 void cb_b_decrypt_v2(uint8_t *cb_b_data, uint8_t *cb_a_data, uint8_t *cpu_key) {
@@ -102,8 +102,9 @@ void cb_b_decrypt_v2(uint8_t *cb_b_data, uint8_t *cb_a_data, uint8_t *cpu_key) {
     EXCRYPT_RC4_STATE rc4 = {0};
     uint32_t size_aligned = BE(cb_b_hdr->header.size) + 0xF & 0xFFFFFFF0;
 
-    // no idea which CB_A started doing this?
-    // 9188 doesn't, 6754 and 13182 do
+    // update 15574 (blupd 15912) started doing this
+    // CB_A 1942, 1927, 1928, 4561, 4574, 4562, 4569, 5774, 6754, 7378, 9231, 13181, 13182, 16128
+    // TODO: can we detect this concretely?
     bootloader_header cb_a_hdr_copy;
     memcpy(&cb_a_hdr_copy, cb_a_data, sizeof(bootloader_header));
     cb_a_hdr_copy.flags = 0;
@@ -112,6 +113,6 @@ void cb_b_decrypt_v2(uint8_t *cb_b_data, uint8_t *cb_a_data, uint8_t *cpu_key) {
     ExCryptHmacSha(cb_a_hdr->key, 0x10, cb_b_hdr->key, sizeof(cb_b_hdr->key), cpu_key, 0x10, (uint8_t *)&cb_a_hdr_copy, 0x10, cb_b_hdr->key, sizeof(cb_b_hdr->key));
     ExCryptRc4Key(&rc4, cb_b_hdr->key, sizeof(cb_b_hdr->key));
 
-    // 0x20 = sizeof(bootloader_header), sizeof(hdr->key) - all content after &padding_or_args is encrypted
-    ExCryptRc4Ecb(&rc4, (uint8_t *)&cb_b_hdr->padding_or_args, size_aligned - 0x20);
+    // 0x20 = sizeof(bootloader_header), sizeof(hdr->key) - all content after &args is encrypted
+    ExCryptRc4Ecb(&rc4, (uint8_t *)&cb_b_hdr->args, size_aligned - 0x20);
 }

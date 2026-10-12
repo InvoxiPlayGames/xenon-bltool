@@ -88,6 +88,6 @@ void xke_sc_decrypt(uint8_t *bl_data, uint8_t *dec_key) {
     ExCryptHmacSha(dec_key, 0x10, hdr->key, sizeof(hdr->key), NULL, 0, NULL, 0, hdr->key, sizeof(hdr->key));
     ExCryptRc4Key(&rc4, hdr->key, sizeof(hdr->key));
 
-    // 0x20 = sizeof(bootloader_header), sizeof(hdr->key) - all content after &padding_or_args is encrypted
-    ExCryptRc4Ecb(&rc4, (uint8_t *)(hdr + 1), size_aligned - sizeof(bootloader_generic_header));
+    // 0x20 = sizeof(bootloader_header), sizeof(hdr->key) - all content after 0x20 bytes is encrypted
+    ExCryptRc4Ecb(&rc4, (uint8_t *)(&hdr->signature), size_aligned - 0x20);
 }

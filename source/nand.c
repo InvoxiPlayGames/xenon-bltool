@@ -96,7 +96,7 @@ void read_nand_data(nand_file *file, uint32_t offset, uint8_t *data, size_t len)
 
     // for these types, we can just read directly from the file at the offset given
     if (file->type == NAND_TYPE_UNECC ||
-        file->type == NAND_TYPE_CORONA) {
+        file->type == NAND_TYPE_EMMC) {
         fseek(file->fp, offset, SEEK_SET);
         fread(data, 1, len, file->fp);
         return;

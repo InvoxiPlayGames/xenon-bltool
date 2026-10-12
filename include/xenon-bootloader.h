@@ -61,7 +61,7 @@ typedef struct _bootloader_generic_header {
 typedef struct _bootloader_cb_header {
     bootloader_header header;
     uint8_t key[0x10];
-    uint64_t padding_or_args[4];
+    uint64_t args[4];
     EXCRYPT_SIG signature;
     uint8_t globals[0x128]; // find out whats in here...
     EXCRYPT_RSAPUB_2048 devkit_pubkey;
@@ -135,8 +135,9 @@ typedef struct _bootloader_update_inner {
 typedef struct _bootloader_update_tab_entry {
     uint16_t cpu_pvr;
     uint16_t xenos_id;
-    uint16_t unk1; // differentiates elpis and corona - possibly PCI bridge revision ID?
-    uint16_t unk2; // also differentiates elpis/corona but also new GPU revs?
+    uint8_t ana_id; // 0x01 = ANA, 0x11 = HANA, 0x23 = KSB
+    uint8_t unk1;  // 0x01 for phats, 0x03 s/e
+    uint16_t unk2; // differentiates between elpis/corona but also new GPU revs?
     uint16_t from_cb; // seems to be used exclusively on Xenon
     uint16_t from_cd; // never used, just an assumption?
     uint16_t to_cb; // the CB (and CB_B in v2) version to update to
