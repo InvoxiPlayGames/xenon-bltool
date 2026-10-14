@@ -44,8 +44,8 @@ void cd_print_info(uint8_t *cd_data) {
     printf("%s version: %i\n", indicator, BE16(hdr->header.version));
     printf("%s size: 0x%x\n", indicator, BE(hdr->header.size));
     printf("%s entrypoint: 0x%x\n", indicator, BE(hdr->header.entrypoint));
-    printf("%s cfsalt: %.10s\n", indicator, hdr->cf_salt);
     if (cd_is_decrypted(cd_data)) {
+        printf("%s cfsalt: %.10s\n", indicator, hdr->cf_salt);
         printf("%s-E hash: ", indicator);
         hexdump(hdr->ce_hash, sizeof(hdr->ce_hash));
     } else {

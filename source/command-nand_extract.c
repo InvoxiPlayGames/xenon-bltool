@@ -122,7 +122,7 @@ int do_nand_extract_command(int argc, char **argv) {
         cb_decrypt(cb_buf, key_1bl);
     cb_print_info(cb_buf);
 
-    dump_to_file("extracted_cb.bin", cb_buf, BE(bl_hdr.size));
+    dump_to_file("extracted_2bl.bin", cb_buf, BE(bl_hdr.size));
 
     // the next stage starts right after the first - repeats until 5BL/CE
     uint32_t next_stage_start = cb_start + (BE(bl_hdr.size) + 0xF & 0xFFFFFFF0);
@@ -151,7 +151,7 @@ int do_nand_extract_command(int argc, char **argv) {
         if (memcmp(cb_b_sha, cb_hdr->cd_cbb_hash, 0x14) != 0)
             printf("! CB_B does not match RotSumSha in CB_A !\n");
 
-        dump_to_file("extracted_cb_b.bin", cb_b_buf, BE(bl_hdr.size));
+        dump_to_file("extracted_2bl_b.bin", cb_b_buf, BE(bl_hdr.size));
 
         has_cb_b = true;
 
@@ -163,8 +163,38 @@ int do_nand_extract_command(int argc, char **argv) {
     // read the header to get the size
     read_nand_data(nand, next_stage_start, (uint8_t *)&bl_hdr, sizeof(bootloader_header));
 
+    // we have to read SC to get the key for SD, if we have an SC
+    bootloader_generic_header sc_hdr = {0};
+    bool has_sc = false;
     if ((BE16(bl_hdr.magic)) == 0x5343) {
-        printf("skipping SC...\n");
+        has_sc = true;
+
+        // read just the header (we store the key here for later)
+        read_nand_data(nand, next_stage_start, (uint8_t *)&sc_hdr, sizeof(bootloader_generic_header));
+        printf("SC version: %i\n", BE16(sc_hdr.header.version));
+        printf("SC size: 0x%x\n", BE(sc_hdr.header.size));
+
+        uint8_t *sc_buf = malloc(BE(sc_hdr.header.size));
+        if (sc_buf == NULL) {
+            printf("failed to allocate buffer for SC\n");
+            return -1;
+        }
+        read_nand_data(nand, next_stage_start, sc_buf, BE(sc_hdr.header.size));
+
+        if (cb_is_decrypted(cb_buf))
+        {
+            xke_sc_decrypt(sc_buf, cb_hdr->sc_key);
+            if (xke_sc_verify_signature(sc_buf, cb_hdr->sc_salt, (uint8_t *)&cb_hdr->devkit_pubkey))
+                printf("SC signature: signed\n");
+            else
+                printf("SC signature: unsigned\n");
+            memcpy(sc_hdr.key, sc_buf + 0x10, 0x10);//could be prettier...
+            dump_to_file("extracted_3bl.bin", sc_buf, BE(sc_hdr.header.size));
+        }
+
+        free(sc_buf);
+
+        // read in the SD
         next_stage_start += (BE(bl_hdr.size) + 0xF & 0xFFFFFFF0);
         read_nand_data(nand, next_stage_start, (uint8_t *)&bl_hdr, sizeof(bootloader_header));
     }
@@ -179,23 +209,55 @@ int do_nand_extract_command(int argc, char **argv) {
 
     bootloader_cd_header *cd_hdr = (bootloader_cd_header *)cd_buf;
 
-    if (!cd_is_decrypted(cd_buf) && has_cpu_key)
-        cd_decrypt(cd_buf, cb_hdr->key, has_cb_b ? NULL : cpu_key);
+    if (!cd_is_decrypted(cd_buf) && (has_cpu_key || has_sc))
+        cd_decrypt(cd_buf, has_sc ? sc_hdr.key : cb_hdr->key, (has_cb_b || has_sc) ? NULL : cpu_key);
 
     cd_print_info(cd_buf);
 
-    // validate the rotsumsha
-    uint8_t cd_sha[0x14];
-    cd_calculate_rotsum(cd_buf, cd_sha);
-    if (memcmp(cd_sha, cb_hdr->cd_cbb_hash, 0x14) != 0)
-        printf("! CD does not match RotSumSha in CB !\n");
+    if (cd_is_decrypted(cd_buf))
+    {
+        // validate the rotsumsha
+        if (!(BE16(cd_hdr->header.magic) & 0x1000))
+        {
+            uint8_t cd_sha[0x14];
+            cd_calculate_rotsum(cd_buf, cd_sha);
+            if (memcmp(cd_sha, cb_hdr->cd_cbb_hash, 0x14) != 0)
+                printf("! CD does not match RotSumSha in CB !\n");
+        }
+        else // devkits use RSA for 4BL
+        {
+            if (cd_verify_signature_devkit(cd_buf, (uint8_t *)&cb_hdr->devkit_pubkey))
+                printf("SD signature: signed\n");
+            else
+                printf("SD signature: invalid\n");
+        }
 
-    dump_to_file("extracted_cd.bin", cd_buf, BE(bl_hdr.size));
+    }
 
+    dump_to_file("extracted_4bl.bin", cd_buf, BE(bl_hdr.size));
+
+    // read in CE
     next_stage_start += (BE(bl_hdr.size) + 0xF & 0xFFFFFFF0);
+    read_nand_data(nand, next_stage_start, (uint8_t *)&bl_hdr, sizeof(bootloader_header));
+    
+    uint8_t *ce_buf = malloc(BE(bl_hdr.size));
+    if (ce_buf == NULL) {
+        printf("failed to allocate buffer for CE\n");
+        return -1;
+    }
+    memset(ce_buf, 0, BE(bl_hdr.size));
+    read_nand_data(nand, next_stage_start, ce_buf, BE(bl_hdr.size));
+
+    bootloader_ce_header *ce_hdr = (bootloader_ce_header *)ce_buf;
+    if (!ce_is_decrypted(ce_buf))
+        ce_decrypt(ce_buf, cd_hdr->key);
+    ce_print_info(ce_buf);
+
+    dump_to_file("extracted_5bl.bin", ce_buf, BE(bl_hdr.size));
 
     free(cb_buf);
     free(cd_buf);
+    free(ce_buf);
 
     close_nand_file(nand);
     return 0;

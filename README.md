@@ -7,7 +7,9 @@ Licensed to you under the GNU General Public License version 2. See LICENSE for 
 ## Features so far
 
 * Decompressing the CE/5BL base kernel.
-* Extracting and updating the kernel stages. (CE/SE + CG/SE)
+* Extracting and updating the kernel stages. (CE/SE + CG/SG)
+* Decrypting XKE payloads.
+* Decrypting, decompressing and extracting bootloader updates.
 * (INCOMPLETE) Decrypting CB, CB_B and CD from a NAND image.
 
 ## Usage
@@ -22,18 +24,22 @@ usage: xenon-bltool [verb] [arguments]
 
 available verbs:
     decompress - Decompresses a CE/SE (5BL) bootloader.
-      xenon-bltool decompress [path to CE] [output path]
+      ./xenon-bltool decompress [path to CE] [output path]
     xboxupd - Applies an xboxupd.bin (CF+CG) patch to a base kernel or CE.
-      xenon-bltool xboxupd [path to xboxupd.bin] [path to CE/base] [output_path]
+      ./xenon-bltool xboxupd [path to xboxupd.bin] [path to CE/base] [output_path]
     nand_extract - Extracts CB, CB_B and CD stages from a NAND image. (UNFINISHED!)
       ./xenon-bltool nand_extract [path to nand.bin] [cpu key]
+    decrypt - Decrypts a bootloader stage.
+      ./xenon-bltool decrypt [path to stage] [output path]
+    blupd - Decrypts a bootloader update blob from $install_extender.xex.
+      ./xenon-bltool blupd [path to update blob]
 ```
 
 ## Compiling
 
 **Linux, macOS, FreeBSD:** Install your distro's build tools.
 
-**Windows:** Use MSYS2 with MINGW64.
+**Windows:** Get a job
 
 From a terminal with GNU Make and appropriate toolchains installed, run `make`.
 

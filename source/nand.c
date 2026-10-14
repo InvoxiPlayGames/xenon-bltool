@@ -38,11 +38,11 @@ nand_file *open_nand_file(FILE *fp, bool create) {
     int file_size = ftell(fp);
 
     // some sort of "sanity check".
-    // might get rid of this soon depending on 
-    if (file_size < 0x1000000) {
-        printf("input nand file too small!\n");
-        return NULL;
-    }
+    // falsely flags on shadowboot images, which are basically nand images if they like weren't
+    //if (file_size < 0x1000000) {
+    //    printf("input nand file too small!\n");
+    //    return NULL;
+    //}
 
     // read the header to make sure it's a valid image, and try to figure some things out
     uint8_t page_and_ecc[NAND_PAGE_FULL];
